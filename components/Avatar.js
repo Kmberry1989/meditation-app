@@ -1,3 +1,4 @@
+'use client';
 import React, { useMemo } from 'react';
 import { useFrame } from '@react-three/fiber';
 import useStore from '../store/useStore';

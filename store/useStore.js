@@ -1,4 +1,4 @@
-import create from 'zustand';
+import { create } from 'zustand';
 
 /**
  * Global application store using zustand.  It holds state for
