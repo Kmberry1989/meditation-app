@@ -1,5 +1,5 @@
 'use client';
-import React, { Suspense } from 'react';
+import React, { Suspense, useEffect, useState } from 'react';
 import { Canvas } from '@react-three/fiber';
 import Environment from '../components/Environment';
 import Avatar from '../components/Avatar';
@@ -16,12 +16,34 @@ import useStore from '../store/useStore';
  */
 export default function Home() {
   const idleMode = useStore((state) => state.idleMode);
+  const [gl, setGl] = useState(null);
+
+  // Attach WebGL context loss/restoration handlers
+  useEffect(() => {
+    if (!gl) return;
+    const canvas = gl.domElement;
+    const handleContextLost = (e) => {
+      e.preventDefault();
+      console.warn('WebGL context lost.');
+    };
+    const handleContextRestored = () => {
+      console.info('WebGL context restored.');
+    };
+    canvas.addEventListener('webglcontextlost', handleContextLost, false);
+    canvas.addEventListener('webglcontextrestored', handleContextRestored, false);
+    return () => {
+      canvas.removeEventListener('webglcontextlost', handleContextLost, false);
+      canvas.removeEventListener('webglcontextrestored', handleContextRestored, false);
+    };
+  }, [gl]);
+
   return (
     <div className="app-container">
       <Canvas
         className="scene-canvas"
         shadows
         camera={{ position: [5, 3, 8], fov: 50 }}
+        onCreated={({ gl }) => setGl(gl)}
       >
         <Suspense fallback={null}>
           {/* Render environment with idle mode */}
