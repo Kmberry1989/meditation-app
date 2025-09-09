@@ -29,7 +29,7 @@ export default function Home() {
   }, [gl]);
 
   return (
-    <div style={{ width: '100vw', height: '100vh', position: 'relative' }}>
+    <div>
       <Suspense fallback={<div>Loading 3D Scene...</div>}>
         <Canvas
           className="scene-canvas"
@@ -38,12 +38,10 @@ export default function Home() {
           onCreated={({ gl }) => setGl(gl)}
         >
           <Environment idleMode={idleMode} />
-          <Avatar position={[0, 1.1, 0]} />
+          <Avatar position={[0, 0, 0]} />
         </Canvas>
       </Suspense>
-      <div style={{ position: 'absolute', top: 20, left: 20 }}>
-        <AvatarCreator />
-      </div>
+      <AvatarCreator />
     </div>
   );
 }
