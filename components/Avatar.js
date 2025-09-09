@@ -3,57 +3,48 @@ import React, { useMemo } from 'react';
 import { useFrame } from '@react-three/fiber';
 import useStore from '../store/useStore';
 
-/**
- * Avatar component renders a simple humanoid figure with adjustable
- * proportions and colours.  It responds to global state from
- * zustand to update body type, hair colour, skin tone and accessory.
- * Replace this placeholder with a high‑quality GLB model if you
- * have one; the logic here demonstrates how to react to state.
- */
+// Avatar: adjustable humanoid figure
 export default function Avatar({ position = [0, 0, 0] }) {
   const { bodyType, hairColor, skinTone, accessory } = useStore((state) => state.avatar);
   // Scale factor for body based on type
   const scale = useMemo(() => {
     switch (bodyType) {
-      case 'slim':
-        return [0.8, 1.0, 0.8];
-      case 'full':
-        return [1.2, 1.0, 1.2];
-      default:
-        return [1.0, 1.0, 1.0];
+      case 'slim': return [0.8, 1.0, 0.8];
+      case 'full': return [1.2, 1.0, 1.2];
+      default: return [1.0, 1.0, 1.0];
     }
   }, [bodyType]);
   return (
     <group position={position} scale={scale}>
       {/* Torso */}
-      <mesh position={[0, 1, 0]}>
-        <boxGeometry args={[0.4, 0.7, 0.2]} />
+      <mesh position={[0, 1.1, 0]}>
+        <boxGeometry args={[0.35, 0.65, 0.2]} />
         <meshStandardMaterial color={skinTone} />
       </mesh>
       {/* Head */}
-      <mesh position={[0, 1.8, 0]}>
-        <sphereGeometry args={[0.25, 16, 16]} />
+      <mesh position={[0, 1.65, 0]}>
+        <sphereGeometry args={[0.21, 16, 16]} />
         <meshStandardMaterial color={skinTone} />
       </mesh>
       {/* Hair */}
-      <mesh position={[0, 2.05, 0]}>
-        <sphereGeometry args={[0.27, 16, 16, 0, Math.PI * 2, 0, Math.PI / 2]} />
+      <mesh position={[0, 1.82, 0]}>
+        <sphereGeometry args={[0.14, 16, 8, 0, Math.PI * 2, 0, Math.PI * 0.65]} />
         <meshStandardMaterial color={hairColor} />
       </mesh>
       {/* Legs */}
-      <mesh position={[-0.12, 0.3, 0]}>
-        <boxGeometry args={[0.1, 0.6, 0.1]} />
+      <mesh position={[-0.10, 0.65, 0]}>
+        <boxGeometry args={[0.09, 0.45, 0.09]} />
         <meshStandardMaterial color={skinTone} />
       </mesh>
-      <mesh position={[0.12, 0.3, 0]}>
-        <boxGeometry args={[0.1, 0.6, 0.1]} />
+      <mesh position={[0.10, 0.65, 0]}>
+        <boxGeometry args={[0.09, 0.45, 0.09]} />
         <meshStandardMaterial color={skinTone} />
       </mesh>
       {/* Accessory */}
       {accessory === 'hat' && (
-        <mesh position={[0, 2.3, 0]} rotation={[Math.PI, 0, 0]}>
-          <coneGeometry args={[0.35, 0.4, 16]} />
-          <meshStandardMaterial color={hairColor} />
+        <mesh position={[0, 1.93, 0]}>
+          <cylinderGeometry args={[0.14, 0.10, 0.12, 14]} />
+          <meshStandardMaterial color="#3a3a3a" />
         </mesh>
       )}
     </group>
