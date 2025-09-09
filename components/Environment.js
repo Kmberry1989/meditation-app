@@ -4,15 +4,7 @@ import * as THREE from 'three';
 import { useFrame } from '@react-three/fiber';
 import { useGLTF, OrbitControls, Environment as DreiEnvironment } from '@react-three/drei';
 
-/**
- * Rain particle system using instanced meshes.
- *
- * Instanced meshes allow Three.js to efficiently render many
- * identical geometries with differing transforms, as noted in
- * performance guidelines for Three.js【987843542628762†L67-L76】.  By
- * reusing a single geometry and material, the GPU can draw
- * hundreds of raindrops with minimal overhead.
- */
+// Rain particle system using instanced meshes.
 function Rain({ count = 400, areaSize = 20, height = 10, rainIntensity = 1 }) {
   const meshRef = useRef();
   // Precompute random initial positions for each raindrop
@@ -45,17 +37,14 @@ function Rain({ count = 400, areaSize = 20, height = 10, rainIntensity = 1 }) {
     meshRef.current.instanceMatrix.needsUpdate = true;
   });
   return (
-    <instancedMesh ref={meshRef} args={[null, null, count]} frustumCulled={false}>
-      <cylinderGeometry args={[0.01, 0.01, 1]} />
-      <meshStandardMaterial color="#88aaff" transparent opacity={0.6} />
+    <instancedMesh ref={meshRef} args={[null, null, count]}>
+      <cylinderGeometry args={[0.01, 0.01, 0.25, 8]} />
+      <meshStandardMaterial color="#aac7ff" transparent opacity={0.7} />
     </instancedMesh>
   );
 }
 
-/**
- * Simple audio component using the Web Audio API.  This component
- * creates an <audio> element and starts playing when mounted.
- */
+// Simple audio component
 function AmbientAudio({ src, volume = 0.5, loop = true }) {
   const audioRef = useRef(null);
   useEffect(() => {
@@ -63,37 +52,27 @@ function AmbientAudio({ src, volume = 0.5, loop = true }) {
     if (audio) {
       audio.volume = volume;
       audio.loop = loop;
-      audio.play().catch(() => {
-        /* Audio play may require user interaction; ignore errors */
-      });
+      audio.play().catch(() => { /* Audio play may require user interaction; ignore errors */ });
     }
     return () => {
       if (audio) audio.pause();
     };
   }, [volume, loop]);
-  return <audio ref={audioRef} src={src} preload="auto" />;
+  return <audio ref={audioRef} src={src} />;
 }
 
-/**
- * Swing component representing a porch swing.  It reacts to
- * pointer/touch events by increasing its swing amplitude.  When
- * idle, the swing gradually slows due to dampening.
- */
+// Swing component
 function Swing({ position = [0, 0, 0], color = '#987654' }) {
   const group = useRef();
   const [amplitude, setAmplitude] = useState(0);
   const [phase, setPhase] = useState(0);
-
-  // Increase the amplitude when the swing is clicked
   const handleClick = () => {
     setAmplitude((amp) => Math.min(amp + 0.3, 1.0));
   };
-  // Animate the swing
   useFrame((state, delta) => {
-    // Apply dampening to gradually reduce amplitude
     setAmplitude((amp) => Math.max(amp * 0.99, 0.0));
     setPhase((ph) => ph + delta);
-    const angle = Math.sin(phase) * amplitude * Math.PI * 0.25; // max ~45°
+    const angle = Math.sin(phase) * amplitude * Math.PI * 0.25;
     if (group.current) {
       group.current.rotation.z = angle;
     }
@@ -101,57 +80,46 @@ function Swing({ position = [0, 0, 0], color = '#987654' }) {
   return (
     <group ref={group} position={position} onClick={handleClick}>
       {/* Seat */}
-      <mesh position={[0, 0, 0]}>
-        <boxGeometry args={[1.6, 0.1, 0.4]} />
+      <mesh position={[0, 1, 0]}>
+        <boxGeometry args={[1, 0.2, 0.4]} />
         <meshStandardMaterial color={color} />
       </mesh>
       {/* Chains */}
-      <mesh position={[-0.8, 0.5, 0]}>
-        <cylinderGeometry args={[0.02, 0.02, 1]} />
-        <meshStandardMaterial color={color} />
+      <mesh position={[-0.4, 1.6, 0]}>
+        <cylinderGeometry args={[0.025, 0.025, 1.2, 8]} />
+        <meshStandardMaterial color="#aaaaaa" />
       </mesh>
-      <mesh position={[0.8, 0.5, 0]}>
-        <cylinderGeometry args={[0.02, 0.02, 1]} />
-        <meshStandardMaterial color={color} />
+      <mesh position={[0.4, 1.6, 0]}>
+        <cylinderGeometry args={[0.025, 0.025, 1.2, 8]} />
+        <meshStandardMaterial color="#aaaaaa" />
       </mesh>
     </group>
   );
 }
 
-/**
- * Tree component representing a cherry blossom.  It uses simple
- * geometries for the trunk and foliage, but you can replace these
- * shapes with high‑quality GLB models by placing them in the
- * public/models directory and loading via useGLTF.
- */
+// Tree component
 function Tree({ position = [0, 0, 0], scale = 1, trunkColor = '#8b5a2b', blossomColor = '#ffb7c5' }) {
   return (
-    <group position={position} scale={scale}>
+    <group position={position} scale={[scale, scale, scale]}>
       {/* Trunk */}
       <mesh position={[0, 1, 0]}>
-        <cylinderGeometry args={[0.1, 0.2, 2]} />
+        <cylinderGeometry args={[0.1, 0.15, 2, 10]} />
         <meshStandardMaterial color={trunkColor} />
       </mesh>
       {/* Foliage */}
-      <mesh position={[0, 2.3, 0]}>
-        <sphereGeometry args={[0.9, 16, 16]} />
+      <mesh position={[0, 2.2, 0]}>
+        <sphereGeometry args={[0.7, 16, 16]} />
         <meshStandardMaterial color={blossomColor} />
       </mesh>
     </group>
   );
 }
 
-/**
- * Animal component representing small creatures like birds or cats.
- * In this example we simply render a sphere; for a realistic
- * experience load a GLB file via useGLTF.  When clicked, the
- * creature emits a sound and moves slightly.
- */
+// Animal component
 function Animal({ position = [0, 0, 0], color = '#ffaa00', soundSrc }) {
   const ref = useRef();
   const [hovered, setHovered] = useState(false);
   const [jumpTime, setJumpTime] = useState(0);
-  // Play sound on click
   const handleClick = () => {
     setJumpTime(0);
     if (ref.current && ref.current.userData.audio) {
@@ -160,7 +128,6 @@ function Animal({ position = [0, 0, 0], color = '#ffaa00', soundSrc }) {
     }
   };
   useFrame((state, delta) => {
-    // Simple jump animation when clicked
     setJumpTime((t) => t + delta);
     if (ref.current) {
       const yOffset = Math.sin(jumpTime * 10) * 0.2 * Math.exp(-2 * jumpTime);
@@ -176,21 +143,13 @@ function Animal({ position = [0, 0, 0], color = '#ffaa00', soundSrc }) {
       onPointerOut={() => setHovered(false)}
       userData={{ audio: new Audio(soundSrc || '') }}
     >
-      <sphereGeometry args={[0.15, 16, 16]} />
-      <meshStandardMaterial color={hovered ? '#ffcc88' : color} />
+      <sphereGeometry args={[0.15, 12, 12]} />
+      <meshStandardMaterial color={color} />
     </mesh>
   );
 }
 
-/**
- * Custom hook to cycle through seasons and associated weather.  The
- * cycle length can be configured via the `duration` parameter.  At
- * each step the season and weather state is updated.  This hook
- * intentionally keeps logic simple; you can extend it to simulate
- * sunrise/sunset, snow, fog or thunderstorms.  See the Three.js
- * tutorial on interactivity【48456416660804†L200-L269】 for details
- * about animating objects over time.
- */
+// Custom hook for season/weather
 function useSeasonCycle(duration = 60) {
   const [season, setSeason] = useState('spring');
   const [weather, setWeather] = useState('rain');
@@ -214,29 +173,20 @@ function useSeasonCycle(duration = 60) {
   return { season, weather };
 }
 
-/**
- * Main Environment component containing the porch, tree, animals and
- * weather effects.  It uses OrbitControls for navigation and
- * includes ambient sounds.  Many of the models are represented
- * with simple geometry; replace them with high quality GLB files
- * in the public/models directory using the useGLTF hook.  Use
- * instanced meshes for particle systems as demonstrated in Rain
- * component【987843542628762†L67-L76】.
- */
+// Main Environment component
 export default function Environment({ idleMode = false }) {
   const { season, weather } = useSeasonCycle();
   const [animals, setAnimals] = useState([
     { id: 0, position: [2, 0.15, 2], color: '#ddaa66', soundSrc: '/sounds/squirrel.mp3' },
     { id: 1, position: [-1.5, 0.15, 1.5], color: '#88bbff', soundSrc: '/sounds/bird.mp3' },
   ]);
-  // Determine rain intensity based on weather
+  // Determine rain intensity
   const rainIntensity = weather === 'rain' ? 1.0 : weather === 'snow' ? 0.3 : 0;
   // Handle idle mode: spawn animals periodically when idleMode is true
   useEffect(() => {
     if (!idleMode) return;
     const interval = setInterval(() => {
       setAnimals((prev) => {
-        // Limit the number of animals to avoid overpopulation
         const max = 8;
         const id = Date.now();
         const newAnimal = {
@@ -252,34 +202,35 @@ export default function Environment({ idleMode = false }) {
         const animals = [...prev, newAnimal];
         return animals.length > max ? animals.slice(animals.length - max) : animals;
       });
-    }, 10000 + Math.random() * 10000); // spawn every 10–20 seconds
+    }, 10000 + Math.random() * 10000);
     return () => clearInterval(interval);
   }, [idleMode]);
   return (
     <>
       {/* Basic lights */}
-      <ambientLight intensity={0.4} />
-      <directionalLight position={[5, 10, 5]} intensity={0.8} castShadow />
+      <ambientLight intensity={0.7} />
+      <directionalLight position={[3, 10, 3]} intensity={0.6} castShadow />
       {/* Porch floor */}
-      <mesh rotation={[-Math.PI / 2, 0, 0]} receiveShadow>
-        <planeGeometry args={[30, 30]} />
-        <meshStandardMaterial color="#3f4c5c" />
+      <mesh position={[0, 0, 0]} receiveShadow>
+        <boxGeometry args={[8, 0.2, 8]} />
+        <meshStandardMaterial color="#ece6d0" />
       </mesh>
       {/* Cherry blossom tree */}
-      <Tree position={[-4, 0, -2]} scale={2} />
+      <Tree position={[-2, 0, -2]} scale={1.5} />
       {/* Swing on the porch */}
-      <Swing position={[0, 1, 0]} />
+      <Swing position={[2, 0.1, 0]} />
       {/* Render animals */}
       {animals.map((a) => (
-        <Animal key={a.id} position={a.position} color={a.color} soundSrc={a.soundSrc} />
+        <Animal key={a.id} {...a} />
       ))}
       {/* Rain effect if raining */}
       {rainIntensity > 0 && <Rain rainIntensity={rainIntensity} />}
       {/* Ambient sounds; adjust volume depending on season */}
-      <AmbientAudio src="/sounds/ambient-rain.mp3" volume={rainIntensity > 0 ? 0.6 : 0.2} />
-      <AmbientAudio src="/sounds/wind-chimes.mp3" volume={0.3} />
-      {/* Orbit controls allow the viewer to navigate the scene */}
-      <OrbitControls enableDamping dampingFactor={0.05} maxPolarAngle={Math.PI / 2.1} />
+      <AmbientAudio src="/sounds/porch-ambience.mp3" volume={season === 'summer' ? 0.6 : 0.2} />
+      {/* Orbit controls */}
+      <OrbitControls />
+      {/* Optional environment background */}
+      <DreiEnvironment preset="sunset" />
     </>
   );
 }
