@@ -1,10 +1,8 @@
 import { create } from 'zustand';
 
 /**
- * Global application store using zustand.  It holds state for
- * avatar customisation as well as the idle mode toggle.  Zustand
- * provides a simple API for reactively updating state across
- * components.
+ * Global application store using zustand. It holds state for
+ * avatar customisation as well as the idle mode toggle.
  */
 const useStore = create((set) => ({
   avatar: {
@@ -22,5 +20,4 @@ const useStore = create((set) => ({
   })),
   toggleIdleMode: () => set((state) => ({ idleMode: !state.idleMode })),
 }));
-
 export default useStore;
